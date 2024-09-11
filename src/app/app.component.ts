@@ -57,7 +57,7 @@ export class AppComponent {
       participant =>
         participant.name === $event.name && participant.index === $event.index
     );
-    if (!team) {
+    if (!team || team.strength === 2) {
       return;
     }
     team.strength = $event.strength + 1;
@@ -68,8 +68,7 @@ export class AppComponent {
       participant =>
         participant.name === $event.name && participant.index === $event.index
     );
-    if (!team) {
-      console.log('not found', $event.name);
+    if (!team || team.strength === 0) {
       return;
     }
     team.strength = $event.strength - 1;
