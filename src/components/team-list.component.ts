@@ -30,9 +30,14 @@ import { MatMiniFabButton } from '@angular/material/button';
             <div class="left">
               {{ team.name }}
             </div>
-            <button mat-mini-fab class="right" (click)="onAdd(team.name)">
-              <mat-icon>add_circle</mat-icon>
-            </button>
+            <div class="right">
+              <button mat-mini-fab (click)="onAdd(team.name)">
+                <mat-icon>add_circle</mat-icon>
+              </button>
+              <button mat-mini-fab (click)="onRemove(team.name)">
+                <mat-icon>do_not_disturb_on</mat-icon>
+              </button>
+            </div>
           </div>
         </mat-list-item>
       }
@@ -42,8 +47,12 @@ import { MatMiniFabButton } from '@angular/material/button';
 export class TeamListComponent {
   @Input() teamList = [{ name: '' }];
   @Output() addTeamEvent = new EventEmitter<string>();
+  @Output() removeTeamEvent = new EventEmitter<string>();
 
   onAdd(name: string) {
     this.addTeamEvent.emit(name);
+  }
+  onRemove(name: string) {
+    this.removeTeamEvent.emit(name);
   }
 }

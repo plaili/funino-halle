@@ -88,7 +88,9 @@
     <div class="left-side">
       <app-team-list
         [teamList]="teamList"
-        (addTeamEvent)="addTeam($event)"></app-team-list>
+        (addTeamEvent)="addTeam($event)"
+        (removeTeamEvent)="removeTeam($event)">
+      </app-team-list>
     </div>
     <div class="divider" role="separator" aria-label="Divider"></div>
     <div class="right-side">

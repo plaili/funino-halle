@@ -12,7 +12,6 @@ import { Participant, Team } from '../interfaces/data-types';
 })
 export class AppComponent {
   title = 'funino-halle';
-  participant = {} as Participant;
   participantList = [] as Participant[];
   teamList = [
     { name: 'MTV Braunschweig' },
@@ -50,6 +49,21 @@ export class AppComponent {
       participant => participant.name === $event
     ).length;
     this.participantList.push({ name: $event, index: teamCount, strength: 0 });
+  }
+
+  removeTeam($event: string) {
+    console.log(this.participantList);
+    const teamCount = this.participantList.filter(
+      participant => participant.name === $event
+    ).length;
+    if (teamCount === 0) {
+      return;
+    }
+    const removeIndex = this.participantList.findIndex(
+      participant =>
+        participant.name === $event && participant.index === teamCount - 1
+    );
+    this.participantList.splice(removeIndex, 1);
   }
 
   incStrength($event: Participant) {
