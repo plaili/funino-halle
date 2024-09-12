@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { MatList, MatListItem } from '@angular/material/list';
 import { Participant } from '../interfaces/data-types';
 import { MatFabButton, MatMiniFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { StrengthService } from '../services/strength.service';
 
 @Component({
   imports: [MatList, MatListItem, MatFabButton, MatIcon, MatMiniFabButton],
@@ -32,14 +33,14 @@ import { MatIcon } from '@angular/material/icon';
         <mat-list-item>
           <div class="container">
             <div class="left">
-              {{ participant.name }} {{ participant.index }} -
-              {{ participant.strength }}
+              {{ participant.name }} {{ participant.index + 1 }} -
+              {{ strengthService.getName(participant.strength) }}
             </div>
             <div class="right">
-              <button mat-mini-fab (click)="onIncStrength(participant)">
+              <button mat-mini-fab (click)="onDecStrength(participant)">
                 <mat-icon>keyboard_double_arrow_up</mat-icon>
               </button>
-              <button mat-mini-fab (click)="onDecStrength(participant)">
+              <button mat-mini-fab (click)="onIncStrength(participant)">
                 <mat-icon>keyboard_double_arrow_down</mat-icon>
               </button>
             </div>
@@ -53,6 +54,8 @@ export class ParticipantListComponent {
   @Input() participantList = [] as Participant[];
   @Output() increaseStrength = new EventEmitter<Participant>();
   @Output() decreaseStrength = new EventEmitter<Participant>();
+
+  protected strengthService = inject(StrengthService);
 
   onIncStrength(participant: Participant) {
     this.increaseStrength.emit(participant);
