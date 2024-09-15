@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ParticipantListComponent } from '../components/participant-list.component';
 import { TeamListComponent } from '../components/team-list.component';
 import { Participant, Team } from '../interfaces/data-types';
+import { GamesScheduleService } from '../services/games-schedule.service';
 
 @Component({
   selector: 'app-root',
@@ -44,11 +45,30 @@ export class AppComponent {
     { name: 'VfR Weddel' },
   ] as Team[];
 
+  protected gameScheduleService = inject(GamesScheduleService);
+
   addTeam($event: string) {
     const teamCount = this.participantList.filter(
       participant => participant.name === $event
     ).length;
     this.participantList.push({ name: $event, index: teamCount, strength: 0 });
+    const fullSchedule = this.gameScheduleService.getFullSchedule(
+      this.participantList
+    );
+    this.gameScheduleService.enrichMatchList(fullSchedule);
+    console.log(fullSchedule);
+    let valid = false;
+    let tries = 0;
+    while (!valid && tries < 40000 && fullSchedule.participants.length > 10) {
+      const trimmedSchedule = this.gameScheduleService.trimMatchList(
+        fullSchedule,
+        5
+      );
+      this.gameScheduleService.enrichMatchList(trimmedSchedule);
+      valid = this.gameScheduleService.isValid(trimmedSchedule);
+      tries++;
+      console.log('valid', tries, valid, trimmedSchedule);
+    }
   }
 
   removeTeam($event: string) {
