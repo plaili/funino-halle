@@ -15,6 +15,7 @@ type Game = {
 
 type MatchList = {
   participants: Participant[];
+  gamesPerParticipant: number;
   games: Game[];
   gameCountMap: Map<string, number>;
   score: number;

@@ -52,23 +52,18 @@ export class AppComponent {
       participant => participant.name === $event
     ).length;
     this.participantList.push({ name: $event, index: teamCount, strength: 0 });
-    const fullSchedule = this.gameScheduleService.getFullSchedule(
-      this.participantList
-    );
-    this.gameScheduleService.enrichMatchList(fullSchedule);
-    console.log(fullSchedule);
     let valid = false;
     let tries = 0;
-    while (!valid && tries < 40000 && fullSchedule.participants.length > 10) {
-      const trimmedSchedule = this.gameScheduleService.trimMatchList(
-        fullSchedule,
+    while (!valid && tries < 500 && this.participantList.length > 8) {
+      const trimmedSchedule = this.gameScheduleService.createTrimmedMatchList(
+        this.participantList,
         5
       );
-      this.gameScheduleService.enrichMatchList(trimmedSchedule);
+      // this.gameScheduleService.enrichMatchList(trimmedSchedule);
       valid = this.gameScheduleService.isValid(trimmedSchedule);
       tries++;
-      console.log('valid', tries, valid, trimmedSchedule);
     }
+    console.log('valid', tries);
   }
 
   removeTeam($event: string) {
