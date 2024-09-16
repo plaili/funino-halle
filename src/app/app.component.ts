@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ParticipantListComponent } from '../components/participant-list.component';
 import { TeamListComponent } from '../components/team-list.component';
-import { Participant, Team } from '../interfaces/data-types';
+import { MatchList, Participant, Team } from '../interfaces/data-types';
 import { GamesScheduleService } from '../services/games-schedule.service';
 
 @Component({
@@ -52,18 +52,26 @@ export class AppComponent {
       participant => participant.name === $event
     ).length;
     this.participantList.push({ name: $event, index: teamCount, strength: 0 });
-    let valid = false;
+    let valid = 0;
     let tries = 0;
-    while (!valid && tries < 500 && this.participantList.length > 8) {
-      const trimmedSchedule = this.gameScheduleService.createTrimmedMatchList(
+    let bestSchedule = undefined as unknown as MatchList;
+    while (valid < 5000 && this.participantList.length > 5) {
+      const schedule = this.gameScheduleService.createTrimmedMatchList(
         this.participantList,
         5
       );
       // this.gameScheduleService.enrichMatchList(trimmedSchedule);
-      valid = this.gameScheduleService.isValid(trimmedSchedule);
+      if (this.gameScheduleService.isValid(schedule)) {
+        if (!bestSchedule || bestSchedule.score < schedule.score) {
+        }
+        bestSchedule = schedule;
+        valid++;
+      }
       tries++;
     }
-    console.log('valid', tries);
+    if (bestSchedule) {
+      console.log('score', bestSchedule.score, tries, bestSchedule);
+    }
   }
 
   removeTeam($event: string) {

@@ -26,12 +26,22 @@ export class GamesScheduleService {
     }
   }
 
+  rate(game: Game): number {
+    let score = 0;
+    score -= Math.abs(game.teamA.strength - game.teamB.strength) * 2;
+    if (game.teamA.name === game.teamB.name) {
+      score -= 1;
+    }
+    return score;
+  }
+
   createTrimmedMatchList(
     participants: Participant[],
     gamesPerTeam: number
   ): MatchList {
     const gameCountMap = new Map<string, number>();
     const games = [] as Game[];
+    let score = 0;
     let neededGames = participants.length * gamesPerTeam;
     if (neededGames % 2 === 1) {
       neededGames += 1;
@@ -100,6 +110,7 @@ export class GamesScheduleService {
             gameCountMap.set(teamAName, gameCountMap.get(teamAName)! + 1);
             gameCountMap.set(teamBName, gameCountMap.get(teamBName)! + 1);
             games.push(game);
+            score += this.rate(game);
           }
         }
         possibleGameIndex += 1;
@@ -110,7 +121,7 @@ export class GamesScheduleService {
       participants,
       games,
       gameCountMap,
-      score: -1,
+      score,
       gamesPerParticipant: gamesPerTeam,
     };
   }
