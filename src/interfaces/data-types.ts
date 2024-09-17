@@ -31,8 +31,19 @@ type CalculationSettings = {
   gameDuration: number;
 };
 
+type CalculationData = {
+  participants: Participant[];
+  settings: CalculationSettings;
+  currentIteration: number;
+  calculations: number;
+  matchList: MatchList;
+  bestScore: number;
+  done: boolean;
+};
+
 export type {
   CalculationSettings,
+  CalculationData,
   Game,
   MatchList,
   MatchSchedule,

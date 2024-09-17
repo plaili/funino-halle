@@ -1,14 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ParticipantListComponent } from '../components/participant-list.component';
 import { TeamListComponent } from '../components/team-list.component';
 import {
+  CalculationData,
   CalculationSettings,
-  MatchList,
   Participant,
   Team,
 } from '../interfaces/data-types';
-import { GamesScheduleService } from '../services/games-schedule.service';
 import { MatGridList, MatGridTile } from '@angular/material/grid-list';
 import { MatIcon } from '@angular/material/icon';
 import { MatMiniFabButton } from '@angular/material/button';
@@ -96,33 +95,26 @@ export class AppComponent {
     { name: 'VfR Weddel' },
   ] as Team[];
 
-  protected gameScheduleService = inject(GamesScheduleService);
-
   calculate($event: CalculationSettings) {
-    console.time('match list calculation');
-    let valid = 0;
-    let tries = 0;
-    let bestSchedule = undefined as unknown as MatchList;
-    while (
-      valid < $event.iterations &&
-      this.participantList.length > $event.gamesPerParticipant + 1
-    ) {
-      const schedule = this.gameScheduleService.createTrimmedMatchList(
-        this.participantList,
-        $event.gamesPerParticipant
-      );
-      if (this.gameScheduleService.isValid(schedule)) {
-        if (!bestSchedule || bestSchedule.score < schedule.score) {
-          bestSchedule = schedule;
-        }
-        valid++;
-      }
-      tries++;
+    if (typeof Worker !== 'undefined') {
+      // Create a new
+      const worker = new Worker(new URL('./app.worker', import.meta.url));
+      worker.onmessage = ({ data }) => {
+        const calcData = data as CalculationData;
+        console.log(
+          `calc status: done=${calcData.done} tries=${calcData.calculations} of which ${calcData.currentIteration} valid with best score of ${calcData.bestScore}`
+        );
+      };
+      const data = {
+        participants: this.participantList,
+        settings: $event,
+      } as CalculationData;
+      worker.postMessage(data);
+    } else {
+      console.error('no web workers');
+      // Web Workers are not supported in this environment.
+      // You should add a fallback so that your program still executes correctly.
     }
-    if (bestSchedule) {
-      console.log('score', bestSchedule.score, tries, bestSchedule);
-    }
-    console.timeEnd('match list calculation');
   }
 
   addTeam($event: string) {
@@ -168,16 +160,4 @@ export class AppComponent {
     }
     team.strength = $event.strength - 1;
   }
-}
-
-if (typeof Worker !== 'undefined') {
-  // Create a new
-  const worker = new Worker(new URL('./app.worker', import.meta.url));
-  worker.onmessage = ({ data }) => {
-    console.log(`page got message: ${data}`);
-  };
-  worker.postMessage('hello');
-} else {
-  // Web Workers are not supported in this environment.
-  // You should add a fallback so that your program still executes correctly.
 }
