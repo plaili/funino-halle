@@ -10,21 +10,6 @@ import { StrengthService } from '../services/strength.service';
   selector: 'app-participant-list',
   standalone: true,
   template: `
-    <style>
-      .container {
-        display: flex; /* Verwende Flexbox für die Anordnung der Elemente */
-        justify-content: space-between; /* Platz zwischen den Elementen */
-        align-items: center; /* Vertikale Zentrierung, optional */
-      }
-
-      .left {
-        flex-grow: 1; /* Nimmt so viel Platz wie möglich ein */
-      }
-
-      .right {
-        margin-left: 20px; /* Optionaler Abstand zum linken Element */
-      }
-    </style>
     <mat-list>
       @for (
         participant of participantList;
@@ -48,6 +33,23 @@ import { StrengthService } from '../services/strength.service';
         </mat-list-item>
       }
     </mat-list>
+  `,
+  styles: `
+    .container {
+      display: flex; /* Verwende Flexbox für die Anordnung der Elemente */
+      justify-content: space-between; /* Platz zwischen den Elementen */
+      align-items: center; /* Vertikale Zentrierung, optional */
+    }
+    .mdc-fab {
+      margin: 5px;
+    }
+    .left {
+      flex-grow: 1; /* Nimmt so viel Platz wie möglich ein */
+    }
+
+    .right {
+      margin-left: 20px; /* Optionaler Abstand zum linken Element */
+    }
   `,
 })
 export class ParticipantListComponent {

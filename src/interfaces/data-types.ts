@@ -25,4 +25,17 @@ type MatchSchedule = {
   games: Game[];
 };
 
-export type { Game, MatchList, MatchSchedule, Team, Participant };
+type CalculationSettings = {
+  iterations: number;
+  gamesPerParticipant: number;
+  gameDuration: number;
+};
+
+export type {
+  CalculationSettings,
+  Game,
+  MatchList,
+  MatchSchedule,
+  Team,
+  Participant,
+};

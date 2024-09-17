@@ -8,21 +8,6 @@ import { MatMiniFabButton } from '@angular/material/button';
   selector: 'app-team-list',
   standalone: true,
   template: `
-    <style>
-      .container {
-        display: flex; /* Verwende Flexbox für die Anordnung der Elemente */
-        justify-content: space-between; /* Platz zwischen den Elementen */
-        align-items: center; /* Vertikale Zentrierung, optional */
-      }
-
-      .left {
-        flex-grow: 1; /* Nimmt so viel Platz wie möglich ein */
-      }
-
-      .right {
-        margin-left: 20px; /* Optionaler Abstand zum linken Element */
-      }
-    </style>
     <mat-list>
       @for (team of teamList; track team.name) {
         <mat-list-item>
@@ -42,6 +27,24 @@ import { MatMiniFabButton } from '@angular/material/button';
         </mat-list-item>
       }
     </mat-list>
+  `,
+  styles: `
+    .container {
+      display: flex; /* Verwende Flexbox für die Anordnung der Elemente */
+      justify-content: space-between; /* Platz zwischen den Elementen */
+      align-items: center; /* Vertikale Zentrierung, optional */
+    }
+    .mdc-fab {
+      margin: 5px;
+    }
+
+    .left {
+      flex-grow: 1; /* Nimmt so viel Platz wie möglich ein */
+    }
+
+    .right {
+      margin-left: 20px; /* Optionaler Abstand zum linken Element */
+    }
   `,
 })
 export class TeamListComponent {

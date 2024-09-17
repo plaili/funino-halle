@@ -2,14 +2,65 @@ import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ParticipantListComponent } from '../components/participant-list.component';
 import { TeamListComponent } from '../components/team-list.component';
-import { MatchList, Participant, Team } from '../interfaces/data-types';
+import {
+  CalculationSettings,
+  MatchList,
+  Participant,
+  Team,
+} from '../interfaces/data-types';
 import { GamesScheduleService } from '../services/games-schedule.service';
+import { MatGridList, MatGridTile } from '@angular/material/grid-list';
+import { MatIcon } from '@angular/material/icon';
+import { MatMiniFabButton } from '@angular/material/button';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { HeaderComponent } from '../components/header-component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, ParticipantListComponent, TeamListComponent],
-  templateUrl: './app.component.html',
+  imports: [
+    RouterOutlet,
+    ParticipantListComponent,
+    TeamListComponent,
+    MatGridList,
+    MatGridTile,
+    MatIcon,
+    MatLabel,
+    MatMiniFabButton,
+    MatFormField,
+    MatInput,
+    HeaderComponent,
+  ],
+  template: ` <mat-grid-list cols="2" rowHeight="5vh">
+    <mat-grid-tile [colspan]="2" [rowspan]="1">
+      <app-header-component (calculate)="calculate($event)" />
+    </mat-grid-tile>
+    <mat-grid-tile [colspan]="1" [rowspan]="18">
+      <app-team-list
+        [teamList]="teamList"
+        (addTeamEvent)="addTeam($event)"
+        (removeTeamEvent)="removeTeam($event)">
+      </app-team-list>
+    </mat-grid-tile>
+    <mat-grid-tile [colspan]="1" [rowspan]="18"
+      ><app-participant-list
+        [participantList]="participantList"
+        (increaseStrength)="incStrength($event)"
+        (decreaseStrength)="decStrength($event)">
+      </app-participant-list>
+    </mat-grid-tile>
+  </mat-grid-list>`,
+  styles: `
+    app-team-list,
+    app-participant-list {
+      align-self: flex-start;
+      overflow: auto;
+    }
+    mat-grid-tile {
+      overflow: auto;
+    }
+  `,
 })
 export class AppComponent {
   title = 'funino-halle';
@@ -47,24 +98,23 @@ export class AppComponent {
 
   protected gameScheduleService = inject(GamesScheduleService);
 
-  addTeam($event: string) {
-    const teamCount = this.participantList.filter(
-      participant => participant.name === $event
-    ).length;
-    this.participantList.push({ name: $event, index: teamCount, strength: 0 });
+  calculate($event: CalculationSettings) {
+    console.time('match list calculation');
     let valid = 0;
     let tries = 0;
     let bestSchedule = undefined as unknown as MatchList;
-    while (valid < 5000 && this.participantList.length > 5) {
+    while (
+      valid < $event.iterations &&
+      this.participantList.length > $event.gamesPerParticipant + 1
+    ) {
       const schedule = this.gameScheduleService.createTrimmedMatchList(
         this.participantList,
-        5
+        $event.gamesPerParticipant
       );
-      // this.gameScheduleService.enrichMatchList(trimmedSchedule);
       if (this.gameScheduleService.isValid(schedule)) {
         if (!bestSchedule || bestSchedule.score < schedule.score) {
+          bestSchedule = schedule;
         }
-        bestSchedule = schedule;
         valid++;
       }
       tries++;
@@ -72,6 +122,14 @@ export class AppComponent {
     if (bestSchedule) {
       console.log('score', bestSchedule.score, tries, bestSchedule);
     }
+    console.timeEnd('match list calculation');
+  }
+
+  addTeam($event: string) {
+    const teamCount = this.participantList.filter(
+      participant => participant.name === $event
+    ).length;
+    this.participantList.push({ name: $event, index: teamCount, strength: 0 });
   }
 
   removeTeam($event: string) {
