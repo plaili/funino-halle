@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { MatList, MatListItem } from '@angular/material/list';
-import { Participant } from '../interfaces/data-types';
+import { Participant } from '../types/data-types';
 import { MatFabButton, MatMiniFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { StrengthService } from '../services/strength.service';

@@ -7,7 +7,7 @@ import {
   CalculationSettings,
   Participant,
   Team,
-} from '../interfaces/data-types';
+} from '../types/data-types';
 import { MatGridList, MatGridTile } from '@angular/material/grid-list';
 import { MatIcon } from '@angular/material/icon';
 import { MatMiniFabButton } from '@angular/material/button';
@@ -102,8 +102,9 @@ export class AppComponent {
       worker.onmessage = ({ data }) => {
         const calcData = data as CalculationData;
         console.log(
-          `calc status: done=${calcData.done} tries=${calcData.calculations} of which ${calcData.currentIteration} valid with best score of ${calcData.bestScore}`
+          `calc status: done=${calcData.done} tries=${calcData.calculations} (${calcData.currentIteration} valid, best score=${calcData.bestScore}, ${calcData.tournamentSchedule.games.length} of ${calcData.matchList.games.length} scheduled`
         );
+        console.log(calcData);
       };
       const data = {
         participants: this.participantList,

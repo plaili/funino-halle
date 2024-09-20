@@ -2,16 +2,17 @@
 
 import {
   CalculationData,
-  MatchList,
   Game,
+  MatchList,
   Participant,
-} from '../interfaces/data-types';
+  TournamentSchedule,
+} from '../types/data-types';
 
 function getName(participant: Participant) {
   return `${participant.name} ${participant.index + 1}`;
 }
 
-function shuffle(array: number[]) {
+function shuffle(array: never[]) {
   let m = array.length;
   let t,
     i = 0;
@@ -28,10 +29,31 @@ function shuffle(array: number[]) {
   }
 }
 
+function stripTeamNumberSuffix(name: string): string {
+  let result = name;
+  if (name.endsWith('III')) {
+    result = name.substring(0, name.length - 4);
+  } else if (
+    name.endsWith('II') ||
+    name.endsWith('VI') ||
+    name.endsWith('IV')
+  ) {
+    result = name.substring(0, name.length - 3);
+  } else if (name.endsWith('I') || name.endsWith('V')) {
+    result = name.substring(0, name.length - 2);
+  }
+  return result;
+}
+
 function rate(game: Game): number {
   let score = 0;
   score -= Math.abs(game.teamA.strength - game.teamB.strength) * 2;
   if (game.teamA.name === game.teamB.name) {
+    score -= 2;
+  } else if (
+    stripTeamNumberSuffix(game.teamA.name) ===
+    stripTeamNumberSuffix(game.teamB.name)
+  ) {
     score -= 1;
   }
   return score;
@@ -62,7 +84,7 @@ function createTrimmedMatchList(
       { length: possibleGameCount },
       (e, i) => i + possibleGameIndex
     );
-    shuffle(possibleShuffledIndices);
+    shuffle(possibleShuffledIndices as never[]);
 
     let missingGames = gamesPerTeam;
     const teamAName = getName(participants[participantIndex]);
@@ -118,7 +140,6 @@ function createTrimmedMatchList(
       possibleGameIndex += 1;
     }
   }
-
   return {
     participants,
     games,
@@ -126,6 +147,130 @@ function createTrimmedMatchList(
     score,
     gamesPerParticipant: gamesPerTeam,
   };
+}
+
+function findeRandomPossibleInRemaining(
+  possibleGames: Game[],
+  remainingGames: Game[]
+): number {
+  let gameIndex = 0;
+  if (possibleGames.length > 0) {
+    shuffle(possibleGames as never[]);
+    gameIndex = remainingGames.findIndex(
+      game =>
+        game.teamA.name === possibleGames[0].teamA.name &&
+        game.teamA.index === possibleGames[0].teamA.index &&
+        game.teamB.name === possibleGames[0].teamB.name &&
+        game.teamB.index === possibleGames[0].teamB.index
+    );
+  }
+  return gameIndex;
+}
+
+function calculateSchedule(matchList: MatchList): TournamentSchedule {
+  const schedule = { games: [], start: new Date() } as TournamentSchedule;
+  const remainingGames = [...matchList.games];
+  let teamCountLower = matchList.participants.length;
+  const minGamesPerTeam = 0;
+  const lastScheduledSlotMap = new Map<string, number>();
+  const scheduledGamesMap = new Map<string, number>();
+  for (const participant of matchList.participants) {
+    lastScheduledSlotMap.set(getName(participant), -2);
+    scheduledGamesMap.set(getName(participant), 0);
+  }
+  const noPauseMap = new Map<string, boolean>();
+  let plannedGames = 0;
+  while (remainingGames.length > 0) {
+    let foundIndex = -1;
+    const currentSlot = Math.floor(plannedGames / 2);
+    const minGameCountOfATeam = Math.floor(
+      plannedGames / (matchList.participants.length / 2)
+    );
+    if (teamCountLower >= 2) {
+      const possibleGames = remainingGames.filter(game => {
+        const teamAName = getName(game.teamA);
+        const teamBName = getName(game.teamB);
+        if (
+          scheduledGamesMap.get(teamAName) === minGameCountOfATeam &&
+          scheduledGamesMap.get(teamBName) === minGameCountOfATeam &&
+          currentSlot - 2 >= lastScheduledSlotMap.get(teamAName)! &&
+          currentSlot - 2 >= lastScheduledSlotMap.get(teamBName)!
+        ) {
+          return true;
+        }
+        return false;
+      });
+      const gameIndex = findeRandomPossibleInRemaining(
+        possibleGames,
+        remainingGames
+      );
+      if (gameIndex >= 0) {
+        foundIndex = gameIndex;
+      } else {
+        const possibleGames = remainingGames.filter(game => {
+          const teamAName = getName(game.teamA);
+          const teamBName = getName(game.teamB);
+          if (
+            scheduledGamesMap.get(teamAName) === minGameCountOfATeam &&
+            scheduledGamesMap.get(teamBName) === minGameCountOfATeam &&
+            (currentSlot - 2 >= lastScheduledSlotMap.get(teamAName)! ||
+              currentSlot - 2 >= lastScheduledSlotMap.get(teamBName)!)
+          ) {
+            return true;
+          }
+          return false;
+        });
+        const gameIndex = findeRandomPossibleInRemaining(
+          possibleGames,
+          remainingGames
+        );
+        if (gameIndex >= 0) {
+          foundIndex = gameIndex;
+        }
+      }
+    } else {
+      const possibleGames = remainingGames.filter(game => {
+        const teamAName = getName(game.teamA);
+        const teamBName = getName(game.teamB);
+        if (
+          (scheduledGamesMap.get(teamAName) === minGameCountOfATeam ||
+            scheduledGamesMap.get(teamBName) === minGameCountOfATeam) &&
+          currentSlot - 2 >= lastScheduledSlotMap.get(teamAName)! &&
+          currentSlot - 2 >= lastScheduledSlotMap.get(teamBName)!
+        ) {
+          return true;
+        }
+        return false;
+      });
+      const gameIndex = findeRandomPossibleInRemaining(
+        possibleGames,
+        remainingGames
+      );
+      if (gameIndex >= 0) {
+        foundIndex = gameIndex;
+      }
+    }
+    if (foundIndex >= 0) {
+      schedule.games.push(remainingGames[foundIndex]);
+      const teamAName = getName(remainingGames[foundIndex].teamA);
+      scheduledGamesMap.set(teamAName, scheduledGamesMap.get(teamAName)! + 1);
+      lastScheduledSlotMap.set(teamAName, currentSlot);
+      const teamBName = getName(remainingGames[foundIndex].teamB);
+      scheduledGamesMap.set(teamBName, scheduledGamesMap.get(teamBName)! + 1);
+      lastScheduledSlotMap.set(teamBName, currentSlot);
+      remainingGames.splice(foundIndex, 1);
+      plannedGames++;
+      teamCountLower = [...scheduledGamesMap.values()].filter(
+        value => value === minGameCountOfATeam
+      ).length;
+      if (teamCountLower === 0) {
+        teamCountLower = matchList.participants.length;
+      }
+    } else {
+      break;
+    }
+  }
+  return schedule;
 }
 
 function isValid(matchList: MatchList): boolean {
@@ -166,7 +311,7 @@ addEventListener('message', ({ data }) => {
   console.time('match list calculation');
   let valid = 0;
   let tries = 0;
-  let bestSchedule = undefined as unknown as MatchList;
+  let bestMatchList = undefined as unknown as MatchList;
   const response = { ...calculationData };
   response.done = false;
   while (
@@ -179,10 +324,10 @@ addEventListener('message', ({ data }) => {
       calculationData.settings.gamesPerParticipant
     );
     if (isValid(schedule)) {
-      if (!bestSchedule || bestSchedule.score < schedule.score) {
-        bestSchedule = schedule;
-        response.matchList = bestSchedule;
-        response.bestScore = bestSchedule.score;
+      if (!bestMatchList || bestMatchList.score < schedule.score) {
+        bestMatchList = schedule;
+        response.matchList = bestMatchList;
+        response.bestScore = bestMatchList.score;
       }
       valid++;
       response.currentIteration = valid;
@@ -193,8 +338,22 @@ addEventListener('message', ({ data }) => {
       postMessage(response);
     }
   }
-  if (bestSchedule) {
-    console.log('score', bestSchedule.score, tries, bestSchedule);
+  if (bestMatchList) {
+    let bestSchedule = { games: [], start: new Date() } as TournamentSchedule;
+    const maxTries = 10000000;
+    let tries = 0;
+    while (
+      tries < maxTries &&
+      bestSchedule.games.length < bestMatchList.games.length
+    ) {
+      const schedule = calculateSchedule(bestMatchList);
+      if (schedule.games.length > bestSchedule.games.length) {
+        bestSchedule = schedule;
+      }
+      tries++;
+    }
+    console.log(`schedule tries: ${tries}`);
+    response.tournamentSchedule = bestSchedule;
   }
   console.timeEnd('match list calculation');
   response.done = true;

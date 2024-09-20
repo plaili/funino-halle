@@ -4,8 +4,12 @@ import { MatIcon } from '@angular/material/icon';
 import { MatMiniFabButton } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { CalculationSettings } from '../interfaces/data-types';
+import { CalculationSettings } from '../types/data-types';
 import { FormsModule } from '@angular/forms';
+import {
+  MatDatepicker,
+  MatDatepickerInput,
+} from '@angular/material/datepicker';
 
 @Component({
   imports: [
@@ -17,6 +21,8 @@ import { FormsModule } from '@angular/forms';
     MatFormField,
     MatInput,
     FormsModule,
+    MatDatepickerInput,
+    MatDatepicker,
   ],
   selector: 'app-header-component',
   standalone: true,
@@ -37,6 +43,14 @@ import { FormsModule } from '@angular/forms';
           [(ngModel)]="model.gamesPerParticipant"
           type="number"
           name="games-per-participant" />
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Start</mat-label>
+        <input
+          matInput
+          [(ngModel)]="model.start"
+          type="datetime-local"
+          name="start" />
       </mat-form-field>
       <mat-form-field>
         <mat-label>Spieldauer in Minuten</mat-label>
@@ -64,6 +78,7 @@ export class HeaderComponent {
     gameDuration: 7,
     gamesPerParticipant: 5,
     iterations: 50,
+    start: new Date(),
   } as CalculationSettings;
 
   onSubmit() {

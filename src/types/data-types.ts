@@ -21,13 +21,15 @@ type MatchList = {
   score: number;
 };
 
-type MatchSchedule = {
+type TournamentSchedule = {
+  start: Date;
   games: Game[];
 };
 
 type CalculationSettings = {
   iterations: number;
   gamesPerParticipant: number;
+  start: Date;
   gameDuration: number;
 };
 
@@ -37,6 +39,7 @@ type CalculationData = {
   currentIteration: number;
   calculations: number;
   matchList: MatchList;
+  tournamentSchedule: TournamentSchedule;
   bestScore: number;
   done: boolean;
 };
@@ -46,7 +49,7 @@ export type {
   CalculationData,
   Game,
   MatchList,
-  MatchSchedule,
+  TournamentSchedule,
   Team,
   Participant,
 };
