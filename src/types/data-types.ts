@@ -24,6 +24,7 @@ type MatchList = {
 type TournamentSchedule = {
   start: Date;
   games: Game[];
+  csv: string;
 };
 
 type CalculationSettings = {

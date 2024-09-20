@@ -31,18 +31,18 @@ import { HeaderComponent } from '../components/header-component';
     MatInput,
     HeaderComponent,
   ],
-  template: ` <mat-grid-list cols="2" rowHeight="5vh">
+  template: ` <mat-grid-list cols="2" rowHeight="10vh">
     <mat-grid-tile [colspan]="2" [rowspan]="1">
       <app-header-component (calculate)="calculate($event)" />
     </mat-grid-tile>
-    <mat-grid-tile [colspan]="1" [rowspan]="18">
+    <mat-grid-tile [colspan]="1" [rowspan]="9">
       <app-team-list
         [teamList]="teamList"
         (addTeamEvent)="addTeam($event)"
         (removeTeamEvent)="removeTeam($event)">
       </app-team-list>
     </mat-grid-tile>
-    <mat-grid-tile [colspan]="1" [rowspan]="18"
+    <mat-grid-tile [colspan]="1" [rowspan]="9"
       ><app-participant-list
         [participantList]="participantList"
         (increaseStrength)="incStrength($event)"

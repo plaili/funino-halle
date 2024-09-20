@@ -149,7 +149,7 @@ function createTrimmedMatchList(
   };
 }
 
-function findeRandomPossibleInRemaining(
+function findRandomPossibleInRemaining(
   possibleGames: Game[],
   remainingGames: Game[]
 ): number {
@@ -168,7 +168,11 @@ function findeRandomPossibleInRemaining(
 }
 
 function calculateSchedule(matchList: MatchList): TournamentSchedule {
-  const schedule = { games: [], start: new Date() } as TournamentSchedule;
+  const schedule = {
+    games: [],
+    start: new Date(),
+    csv: '',
+  } as TournamentSchedule;
   const remainingGames = [...matchList.games];
   let teamCountLower = matchList.participants.length;
   const minGamesPerTeam = 0;
@@ -200,7 +204,7 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
         }
         return false;
       });
-      const gameIndex = findeRandomPossibleInRemaining(
+      const gameIndex = findRandomPossibleInRemaining(
         possibleGames,
         remainingGames
       );
@@ -220,7 +224,7 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
           }
           return false;
         });
-        const gameIndex = findeRandomPossibleInRemaining(
+        const gameIndex = findRandomPossibleInRemaining(
           possibleGames,
           remainingGames
         );
@@ -242,7 +246,7 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
         }
         return false;
       });
-      const gameIndex = findeRandomPossibleInRemaining(
+      const gameIndex = findRandomPossibleInRemaining(
         possibleGames,
         remainingGames
       );
@@ -339,7 +343,11 @@ addEventListener('message', ({ data }) => {
     }
   }
   if (bestMatchList) {
-    let bestSchedule = { games: [], start: new Date() } as TournamentSchedule;
+    let bestSchedule = {
+      games: [],
+      start: new Date(),
+      csv: '',
+    } as TournamentSchedule;
     const maxTries = 10000000;
     let tries = 0;
     while (
@@ -354,7 +362,35 @@ addEventListener('message', ({ data }) => {
     }
     console.log(`schedule tries: ${tries}`);
     response.tournamentSchedule = bestSchedule;
+    const csvHeader = `,1,2,,1,2,,1,2`;
+    const csvLinesArray = Array.from(
+      { length: Math.ceil(bestSchedule.games.length / 6) * 3 },
+      () => ''
+    );
+    for (
+      let gameIndex = 0;
+      gameIndex < bestSchedule.games.length;
+      gameIndex++
+    ) {
+      const line1Index = Math.floor(gameIndex / 6) * 4;
+      csvLinesArray[line1Index] = csvHeader;
+      if (gameIndex > 0 && gameIndex % 2 === 0 && gameIndex % 6 !== 0) {
+        csvLinesArray[line1Index + 1] += ',';
+        csvLinesArray[line1Index + 2] += ',';
+      }
+      csvLinesArray[line1Index + 1] +=
+        `,${getName(bestSchedule.games[gameIndex].teamA)}`;
+
+      csvLinesArray[line1Index + 2] +=
+        `,${getName(bestSchedule.games[gameIndex].teamB)}`;
+
+      csvLinesArray[line1Index + 3] += ',,';
+    }
+    csvLinesArray.forEach(line => {
+      response.tournamentSchedule.csv += line + '\n';
+    });
   }
+
   console.timeEnd('match list calculation');
   response.done = true;
   postMessage(response);
