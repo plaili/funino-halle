@@ -399,7 +399,7 @@ addEventListener('message', ({ data }) => {
     response.tournamentSchedule = bestSchedule;
     const csvHeader = `,1,2,,1,2,,1,2`;
     const csvLinesArray = Array.from(
-      { length: Math.ceil(bestSchedule.games.length / 6) * 3 },
+      { length: Math.ceil(bestSchedule.games.length / 6) * 4 },
       () => ''
     );
     for (
