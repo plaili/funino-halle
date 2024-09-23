@@ -101,10 +101,16 @@ export class AppComponent {
       const worker = new Worker(new URL('./app.worker', import.meta.url));
       worker.onmessage = ({ data }) => {
         const calcData = data as CalculationData;
-        console.log(
-          `calc status: done=${calcData.done} tries=${calcData.calculations} (${calcData.currentIteration} valid, best score=${calcData.bestScore}, ${calcData.tournamentSchedule.games.length} of ${calcData.matchList.games.length} scheduled`
-        );
-        console.log(calcData);
+        if (calcData.done) {
+          console.log(
+            `calc status: done=${calcData.done} tries=${calcData.calculations} (${calcData.currentIteration} valid, best score=${calcData.bestScore}, ${calcData.tournamentSchedule.games.length} of ${calcData.matchList.games.length} scheduled`
+          );
+          console.log(calcData);
+        } else {
+          console.log(
+            `calc status: done=${calcData.done} tries=${calcData.calculations} (${calcData.currentIteration} valid, best score=${calcData.bestScore}`
+          );
+        }
       };
       const data = {
         participants: this.participantList,
