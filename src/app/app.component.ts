@@ -110,6 +110,14 @@ export class AppComponent {
             `calc status: done=${calcData.done} tries=${calcData.calculations} (${calcData.currentIteration} valid, best score=${calcData.bestScore}, ${calcData.tournamentSchedule.games.length} of ${calcData.matchList.games.length} scheduled`
           );
           console.log(calcData);
+          navigator.clipboard
+            .writeText(calcData.tournamentSchedule.csv)
+            .then(() => {
+              console.log('CSV copied to clipboard');
+            })
+            .catch(error => {
+              console.error(error);
+            });
         } else {
           console.log(
             `calc status: done=${calcData.done} tries=${calcData.calculations} (${calcData.currentIteration} valid, best score=${calcData.bestScore}`
