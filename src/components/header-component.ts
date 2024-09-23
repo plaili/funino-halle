@@ -6,10 +6,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { CalculationSettings } from '../types/data-types';
 import { FormsModule } from '@angular/forms';
-import {
-  MatDatepicker,
-  MatDatepickerInput,
-} from '@angular/material/datepicker';
+import { NgxMatTimepickerModule } from 'ngx-mat-timepicker';
 
 @Component({
   imports: [
@@ -21,8 +18,7 @@ import {
     MatFormField,
     MatInput,
     FormsModule,
-    MatDatepickerInput,
-    MatDatepicker,
+    NgxMatTimepickerModule,
   ],
   selector: 'app-header-component',
   standalone: true,
@@ -48,9 +44,13 @@ import {
         <mat-label>Start</mat-label>
         <input
           matInput
+          [ngxMatTimepicker]="picker"
           [(ngModel)]="model.start"
-          type="datetime-local"
-          name="start" />
+          [format]="24"
+          [placeholder]="model.start"
+          name="start"
+          readonly />
+        <ngx-mat-timepicker #picker></ngx-mat-timepicker>
       </mat-form-field>
       <mat-form-field>
         <mat-label>Spieldauer in Minuten</mat-label>
@@ -69,6 +69,9 @@ import {
     .mdc-fab {
       margin: 5px;
     }
+    .mat-mdc-form-field {
+      padding-right: 5px;
+    }
   `,
 })
 export class HeaderComponent {
@@ -78,7 +81,7 @@ export class HeaderComponent {
     gameDuration: 7,
     gamesPerParticipant: 5,
     iterations: 50,
-    start: new Date(),
+    start: '13:00',
   } as CalculationSettings;
 
   onSubmit() {

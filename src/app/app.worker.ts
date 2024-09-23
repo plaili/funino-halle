@@ -1,5 +1,4 @@
 /// <reference lib="webworker" />
-
 import {
   CalculationData,
   Game,
@@ -7,6 +6,7 @@ import {
   Participant,
   TournamentSchedule,
 } from '../types/data-types';
+import { DateTime } from 'ts-luxon';
 
 function getName(participant: Participant) {
   return `${participant.name} ${participant.index + 1}`;
@@ -174,7 +174,7 @@ function findRandomPossibleInRemaining(
 function calculateSchedule(matchList: MatchList): TournamentSchedule {
   const schedule = {
     games: [],
-    start: new Date(),
+    start: '',
     csv: '',
   } as TournamentSchedule;
   // the games to be scheduled
@@ -380,7 +380,7 @@ addEventListener('message', ({ data }) => {
   if (bestMatchList) {
     let bestSchedule = {
       games: [],
-      start: new Date(),
+      start: '',
       csv: '',
     } as TournamentSchedule;
     const maxTries = 10000000;
@@ -402,13 +402,17 @@ addEventListener('message', ({ data }) => {
       { length: Math.ceil(bestSchedule.games.length / 6) * 4 },
       () => ''
     );
+    let nextStartTime = DateTime.fromISO(calculationData.settings.start);
     for (
       let gameIndex = 0;
       gameIndex < bestSchedule.games.length;
       gameIndex++
     ) {
       const line1Index = Math.floor(gameIndex / 6) * 4;
-      csvLinesArray[line1Index] = csvHeader;
+      if (gameIndex % 6 === 0) {
+        csvLinesArray[line1Index] =
+          nextStartTime.toLocaleString(DateTime.TIME_24_SIMPLE) + csvHeader;
+      }
       if (gameIndex > 0 && gameIndex % 2 === 0 && gameIndex % 6 !== 0) {
         csvLinesArray[line1Index + 1] += ',';
         csvLinesArray[line1Index + 2] += ',';
@@ -420,6 +424,9 @@ addEventListener('message', ({ data }) => {
         `,${getName(bestSchedule.games[gameIndex].teamB)}`;
 
       csvLinesArray[line1Index + 3] += ',,';
+      nextStartTime = nextStartTime.plus({
+        minutes: calculationData.settings.gameDuration + 2,
+      });
     }
     csvLinesArray.forEach(line => {
       response.tournamentSchedule.csv += line + '\n';

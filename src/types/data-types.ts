@@ -22,7 +22,7 @@ type MatchList = {
 };
 
 type TournamentSchedule = {
-  start: Date;
+  start: string;
   games: Game[];
   csv: string;
 };
@@ -30,7 +30,7 @@ type TournamentSchedule = {
 type CalculationSettings = {
   iterations: number;
   gamesPerParticipant: number;
-  start: Date;
+  start: string;
   gameDuration: number;
 };
 
