@@ -424,9 +424,11 @@ addEventListener('message', ({ data }) => {
         `,${getName(bestSchedule.games[gameIndex].teamB)}`;
 
       csvLinesArray[line1Index + 3] += ',,';
-      nextStartTime = nextStartTime.plus({
-        minutes: calculationData.settings.gameDuration + 2,
-      });
+      if (gameIndex % 2 === 0) {
+        nextStartTime = nextStartTime.plus({
+          minutes: calculationData.settings.gameDuration + 2,
+        });
+      }
     }
     csvLinesArray.forEach(line => {
       response.tournamentSchedule.csv += line + '\n';
