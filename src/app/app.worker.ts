@@ -148,7 +148,11 @@ function createTrimmedMatchList(
     gamesPerParticipant: gamesPerTeam,
   };
 }
-
+/**
+ * @param possibleGames - The array of games of which to choose one randomly
+ * @param remainingGames - The array of games in which to look for the index of the randomly chosen game
+ * @returns {number} The index of the randomly chosen game in `remainingGames`
+ */
 function findRandomPossibleInRemaining(
   possibleGames: Game[],
   remainingGames: Game[]
@@ -173,36 +177,43 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
     start: new Date(),
     csv: '',
   } as TournamentSchedule;
+  // the games to be scheduled
   const remainingGames = [...matchList.games];
+  // count the number of teams that have fewer games scheduled than other teams
   let teamCountLower = matchList.participants.length;
-  const minGamesPerTeam = 0;
+  // save the last slot in which a team has been scheduled
+  // in each time slot two games can be scheduled
   const lastScheduledSlotMap = new Map<string, number>();
+  // saves the number of scheduled games for every team
   const scheduledGamesMap = new Map<string, number>();
   for (const participant of matchList.participants) {
     lastScheduledSlotMap.set(getName(participant), -2);
     scheduledGamesMap.set(getName(participant), 0);
   }
+  // true if a team has had games in two consecutive slots
   const noPauseMap = new Map<string, boolean>();
-  let plannedGames = 0;
+  let scheduledGames = 0;
   while (remainingGames.length > 0) {
     let foundIndex = -1;
-    const currentSlot = Math.floor(plannedGames / 2);
+    const currentSlot = Math.floor(scheduledGames / 2);
     const minGameCountOfATeam = Math.floor(
-      plannedGames / (matchList.participants.length / 2)
+      scheduledGames / (matchList.participants.length / 2)
     );
+    // rule 1: no team has two pairs of games in consecutive slots
+    // rule 2: no team has ever two fewer games than any other team
+    // rule 3: a team can only be scheduled in a slot once
     if (teamCountLower >= 2) {
+      // we have at least two teams whose games need to be scheduled next
       const possibleGames = remainingGames.filter(game => {
         const teamAName = getName(game.teamA);
         const teamBName = getName(game.teamB);
-        if (
+        return (
+          // we only match if no team has to play two consecutive games
           scheduledGamesMap.get(teamAName) === minGameCountOfATeam &&
           scheduledGamesMap.get(teamBName) === minGameCountOfATeam &&
           currentSlot - 2 >= lastScheduledSlotMap.get(teamAName)! &&
           currentSlot - 2 >= lastScheduledSlotMap.get(teamBName)!
-        ) {
-          return true;
-        }
-        return false;
+        );
       });
       const gameIndex = findRandomPossibleInRemaining(
         possibleGames,
@@ -211,6 +222,7 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
       if (gameIndex >= 0) {
         foundIndex = gameIndex;
       } else {
+        // we did not find a possibility to have no consecutive games
         const possibleGames = remainingGames.filter(game => {
           const teamAName = getName(game.teamA);
           const teamBName = getName(game.teamB);
@@ -246,6 +258,7 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
         }
       }
     } else {
+      // there is only one team left with fewer games than all others
       const possibleGames = remainingGames.filter(game => {
         const teamAName = getName(game.teamA);
         const teamBName = getName(game.teamB);
@@ -282,7 +295,7 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
       scheduledGamesMap.set(teamBName, scheduledGamesMap.get(teamBName)! + 1);
       lastScheduledSlotMap.set(teamBName, currentSlot);
       remainingGames.splice(foundIndex, 1);
-      plannedGames++;
+      scheduledGames++;
       teamCountLower = [...scheduledGamesMap.values()].filter(
         value => value === minGameCountOfATeam
       ).length;
