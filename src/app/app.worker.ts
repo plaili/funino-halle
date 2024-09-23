@@ -153,7 +153,7 @@ function findRandomPossibleInRemaining(
   possibleGames: Game[],
   remainingGames: Game[]
 ): number {
-  let gameIndex = 0;
+  let gameIndex = -1;
   if (possibleGames.length > 0) {
     shuffle(possibleGames as never[]);
     gameIndex = remainingGames.findIndex(
@@ -220,6 +220,19 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
             (currentSlot - 2 >= lastScheduledSlotMap.get(teamAName)! ||
               currentSlot - 2 >= lastScheduledSlotMap.get(teamBName)!)
           ) {
+            // for one of the two teams the slot rule can't be held
+            if (
+              (currentSlot - 2 < lastScheduledSlotMap.get(teamAName)! &&
+                (noPauseMap.has(teamAName) ||
+                  currentSlot === lastScheduledSlotMap.get(teamAName)!)) ||
+              (currentSlot - 2 < lastScheduledSlotMap.get(teamBName)! &&
+                (noPauseMap.has(teamBName) ||
+                  currentSlot === lastScheduledSlotMap.get(teamBName)!))
+            ) {
+              // no team can play in the same slot twice
+              // no team should have two pairs of games without a break
+              return false;
+            }
             return true;
           }
           return false;
@@ -258,8 +271,14 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
       schedule.games.push(remainingGames[foundIndex]);
       const teamAName = getName(remainingGames[foundIndex].teamA);
       scheduledGamesMap.set(teamAName, scheduledGamesMap.get(teamAName)! + 1);
+      if (currentSlot - 2 < lastScheduledSlotMap.get(teamAName)!) {
+        noPauseMap.set(teamAName, true);
+      }
       lastScheduledSlotMap.set(teamAName, currentSlot);
       const teamBName = getName(remainingGames[foundIndex].teamB);
+      if (currentSlot - 2 < lastScheduledSlotMap.get(teamBName)!) {
+        noPauseMap.set(teamBName, true);
+      }
       scheduledGamesMap.set(teamBName, scheduledGamesMap.get(teamBName)! + 1);
       lastScheduledSlotMap.set(teamBName, currentSlot);
       remainingGames.splice(foundIndex, 1);
