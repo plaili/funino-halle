@@ -281,19 +281,21 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
       }
     }
     if (foundIndex >= 0) {
-      schedule.games.push(remainingGames[foundIndex]);
       const teamAName = getName(remainingGames[foundIndex].teamA);
       scheduledGamesMap.set(teamAName, scheduledGamesMap.get(teamAName)! + 1);
       if (currentSlot - 2 < lastScheduledSlotMap.get(teamAName)!) {
         noPauseMap.set(teamAName, true);
       }
       lastScheduledSlotMap.set(teamAName, currentSlot);
+
       const teamBName = getName(remainingGames[foundIndex].teamB);
       if (currentSlot - 2 < lastScheduledSlotMap.get(teamBName)!) {
         noPauseMap.set(teamBName, true);
       }
       scheduledGamesMap.set(teamBName, scheduledGamesMap.get(teamBName)! + 1);
       lastScheduledSlotMap.set(teamBName, currentSlot);
+
+      schedule.games.push(remainingGames[foundIndex]);
       remainingGames.splice(foundIndex, 1);
       scheduledGames++;
       teamCountLower = [...scheduledGamesMap.values()].filter(
@@ -303,6 +305,7 @@ function calculateSchedule(matchList: MatchList): TournamentSchedule {
         teamCountLower = matchList.participants.length;
       }
     } else {
+      // we could not find a suitable match to schedule -> try again
       break;
     }
   }
