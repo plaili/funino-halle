@@ -1,12 +1,15 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatList, MatListItem } from '@angular/material/list';
 import { MatIcon } from '@angular/material/icon';
 import { MatMiniFabButton } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { CalculationSettings } from '../types/data-types';
+import { CalculationData, CalculationSettings } from '../types/data-types';
 import { FormsModule } from '@angular/forms';
 import { NgxMatTimepickerModule } from 'ngx-mat-timepicker';
+import { NgIf } from '@angular/common';
+import { MatSlider, MatSliderThumb } from '@angular/material/slider';
+import { MatProgressBar } from '@angular/material/progress-bar';
 
 @Component({
   imports: [
@@ -18,12 +21,19 @@ import { NgxMatTimepickerModule } from 'ngx-mat-timepicker';
     MatFormField,
     MatInput,
     FormsModule,
+    NgIf,
     NgxMatTimepickerModule,
+    MatSlider,
+    MatSliderThumb,
+    MatProgressBar,
   ],
   selector: 'app-header-component',
   standalone: true,
   template: `
-    <form #settingsForm="ngForm" (ngSubmit)="onSubmit()">
+    <form
+      #settingsForm="ngForm"
+      (ngSubmit)="onSubmit()"
+      *ngIf="!showProgress || calculationData.done === undefined">
       <mat-form-field>
         <mat-label>Iterationen</mat-label>
         <input
@@ -64,6 +74,26 @@ import { NgxMatTimepickerModule } from 'ngx-mat-timepicker';
         <mat-icon>calculate</mat-icon>
       </button>
     </form>
+    <section
+      class="header-progress"
+      *ngIf="showProgress && calculationData.done !== undefined">
+      <h2>
+        Calculation in progress: current best score={{
+          calculationData.bestScore
+        }}
+      </h2>
+      <section class="header-progressbar">
+        <mat-progress-bar
+          mode="determinate"
+          (animationEnd)="onAnimationEnd()"
+          [value]="
+            (calculationData.currentIteration /
+              calculationData.settings.iterations) *
+            100
+          ">
+        </mat-progress-bar>
+      </section>
+    </section>
   `,
   styles: `
     .mdc-fab {
@@ -75,17 +105,24 @@ import { NgxMatTimepickerModule } from 'ngx-mat-timepicker';
   `,
 })
 export class HeaderComponent {
+  @Input() calculationData = {} as CalculationData;
   @Output() calculate = new EventEmitter<CalculationSettings>();
+
+  showProgress = false;
 
   model = {
     gameDuration: 7,
     gamesPerParticipant: 5,
-    iterations: 50,
+    iterations: 50000,
     start: '13:00',
   } as CalculationSettings;
 
   onSubmit() {
-    console.log(this.model);
     this.calculate.emit(this.model);
+    this.showProgress = true;
+  }
+
+  onAnimationEnd() {
+    this.showProgress = false;
   }
 }

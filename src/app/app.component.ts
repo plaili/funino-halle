@@ -33,7 +33,9 @@ import { HeaderComponent } from '../components/header-component';
   ],
   template: ` <mat-grid-list cols="2" rowHeight="10vh">
     <mat-grid-tile [colspan]="2" [rowspan]="1">
-      <app-header-component (calculate)="calculate($event)" />
+      <app-header-component
+        [calculationData]="calculationData"
+        (calculate)="calculate($event)" />
     </mat-grid-tile>
     <mat-grid-tile [colspan]="1" [rowspan]="9">
       <app-team-list
@@ -63,6 +65,7 @@ import { HeaderComponent } from '../components/header-component';
 })
 export class AppComponent {
   title = 'funino-halle';
+  calculationData = {} as CalculationData;
   participantList = [] as Participant[];
   teamList = [
     { name: 'MTV Braunschweig' },
@@ -100,7 +103,8 @@ export class AppComponent {
       // Create a new
       const worker = new Worker(new URL('./app.worker', import.meta.url));
       worker.onmessage = ({ data }) => {
-        const calcData = data as CalculationData;
+        this.calculationData = data as CalculationData;
+        const calcData = this.calculationData;
         if (calcData.done) {
           console.log(
             `calc status: done=${calcData.done} tries=${calcData.calculations} (${calcData.currentIteration} valid, best score=${calcData.bestScore}, ${calcData.tournamentSchedule.games.length} of ${calcData.matchList.games.length} scheduled`
